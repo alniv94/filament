@@ -13,8 +13,10 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Enums\Status;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
-class BrandResource extends Resource
+
+class BrandResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Brand::class;
 
@@ -70,6 +72,16 @@ class BrandResource extends Resource
     {
         return [
             'index' => Pages\ManageBrands::route('/'),
+        ];
+    }
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'create',
+            'update',
+            'delete',
         ];
     }
 }
