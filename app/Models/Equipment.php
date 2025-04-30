@@ -2,11 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Enums\Status;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Notifications\Notifiable;
+use App\Observers\EquipmentMaintenanceObserver;
+
+#[ObservedBy(EquipmentMaintenanceObserver::class)]
 
 class Equipment extends Model
 {
+    use HasFactory, Notifiable;
+
     protected $fillable = [
         'equipment_number',
         'plate_number',
@@ -53,8 +63,34 @@ class Equipment extends Model
         'per_trip' => 'decimal:2',
     ];
 
-    public function brand()
+    public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    public function calculateRemainingDays(): int
+    {
+        if (!$this->next_maintenance_date) {
+            return 0;
+        }
+
+        return Carbon::now()->diffInDays($this->next_maintenance_date, false);
+    }
+
+    public function updateRemainingDays(): void
+    {
+        $this->remaining_days_for_maintenance = $this->calculateRemainingDays();
+        $this->saveQuietly();
+    }
+
+    public function isMaintenanceDueSoon(): bool
+    {
+        $remainingDays = $this->calculateRemainingDays();
+        return $remainingDays >= 0 && $remainingDays <= 7;
+    }
+
+    public function isMaintenanceOverdue(): bool
+    {
+        return $this->calculateRemainingDays() < 0;
     }
 }

@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Enums\Status;
 
-
 class EquipmentResource extends Resource
 {
     protected static ?string $model = Equipment::class;
@@ -53,11 +52,21 @@ class EquipmentResource extends Resource
                 Forms\Components\DateTimePicker::make('date_purchased'),
                 Forms\Components\TextInput::make('cost')
                     ->numeric()
-                    ->prefix('$'),
+                    ->prefix('₱'),
                 Forms\Components\DateTimePicker::make('last_maintenance_date'),
-                Forms\Components\DateTimePicker::make('next_maintenance_date'),
+                Forms\Components\DateTimePicker::make('next_maintenance_date')
+                    ->afterStateUpdated(function ($state, $set, $get) {
+                        if ($state) {
+                            $equipment = new Equipment();
+                            $equipment->next_maintenance_date = $state;
+                            $remainingDays = $equipment->calculateRemainingDays();
+                            $set('remaining_days_for_maintenance', $remainingDays);
+                        }
+                    }),
                 Forms\Components\TextInput::make('remaining_days_for_maintenance')
-                    ->maxLength(255),
+                    ->numeric()
+                    ->disabled()
+                    ->dehydrated(),
                 Forms\Components\TextInput::make('fuel_consumption_number')
                     ->numeric(),
                 Forms\Components\TextInput::make('size_number')
@@ -105,18 +114,33 @@ class EquipmentResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('date_purchased')
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('cost')
                     ->money('php')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('last_maintenance_date')
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('next_maintenance_date')
                     ->dateTime()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('remaining_days_for_maintenance')
-                    ->searchable(),
+                    ->numeric()
+                    ->sortable()
+                    ->badge()
+                    ->color(fn(string $state): string => match (true) {
+                        $state < 0 => 'danger',
+                        $state <= 7 => 'warning',
+                        default => 'success',
+                    })
+                    ->formatStateUsing(fn(string $state): string => match (true) {
+                        $state < 0 => 'Overdue by ' . abs($state) . ' days',
+                        $state == 0 => 'Due today',
+                        default => $state . ' days remaining',
+                    }),
                 Tables\Columns\TextColumn::make('fuel_consumption_number')
                     ->numeric()
                     ->sortable(),
@@ -155,7 +179,7 @@ class EquipmentResource extends Resource
                     ->dateTime()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
-                    ->searchable(),
+                    ->badge(),
                 Tables\Columns\TextColumn::make('brand.name')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
@@ -168,7 +192,22 @@ class EquipmentResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('maintenance_status')
+                    ->options([
+                        'overdue' => 'Maintenance Overdue',
+                        'due_soon' => 'Due Within 7 Days',
+                        'upcoming' => 'Upcoming (8-30 days)',
+                        'future' => 'Future (30+ days)',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        return match ($data['value']) {
+                            'overdue' => $query->whereRaw('DATEDIFF(next_maintenance_date, CURDATE()) < 0'),
+                            'due_soon' => $query->whereRaw('DATEDIFF(next_maintenance_date, CURDATE()) BETWEEN 0 AND 7'),
+                            'upcoming' => $query->whereRaw('DATEDIFF(next_maintenance_date, CURDATE()) BETWEEN 8 AND 30'),
+                            'future' => $query->whereRaw('DATEDIFF(next_maintenance_date, CURDATE()) > 30'),
+                            default => $query,
+                        };
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
