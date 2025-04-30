@@ -99,6 +99,13 @@ class EquipmentResource extends Resource
                     ->relationship('brand', 'name')
                     ->required()
                     ->searchable(),
+                Forms\Components\FileUpload::make('equipment_image')
+                    ->columnSpanFull()
+                    ->multiple()
+                    ->image()
+                    ->imageEditor()
+                    ->directory('equipment_images')
+                    ->visibility('public'),
             ]);
     }
 
@@ -214,6 +221,8 @@ class EquipmentResource extends Resource
                     ->iconButton(),
                 Tables\Actions\DeleteAction::make()
                     ->iconButton(),
+                Tables\Actions\ViewAction::make()
+                    ->iconButton(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -226,6 +235,7 @@ class EquipmentResource extends Resource
     {
         return [
             'index' => Pages\ManageEquipment::route('/'),
+            'view' => Pages\ViewEquipment::route('/{record}'),
         ];
     }
 }

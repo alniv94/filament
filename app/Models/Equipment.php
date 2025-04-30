@@ -42,6 +42,7 @@ class Equipment extends Model
         'date_issued',
         'status',
         'brand_id',
+        'equipment_image'
     ];
 
     protected $casts = [
@@ -61,6 +62,7 @@ class Equipment extends Model
         'nsjbi_rate_hour' => 'decimal:2',
         'bare_month' => 'decimal:2',
         'per_trip' => 'decimal:2',
+        'equipment_image' => 'array',
     ];
 
     public function brand(): BelongsTo
@@ -92,5 +94,18 @@ class Equipment extends Model
     public function isMaintenanceOverdue(): bool
     {
         return $this->calculateRemainingDays() < 0;
+    }
+
+    public function getEquipmentImageUrlsAttribute()
+    {
+        if (empty($this->equipment_image)) {
+            return [];
+        }
+
+        return collect($this->equipment_image)
+            ->map(function ($path) {
+                return asset('storage/' . $path);
+            })
+            ->toArray();
     }
 }
