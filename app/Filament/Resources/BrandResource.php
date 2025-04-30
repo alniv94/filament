@@ -56,6 +56,8 @@ class BrandResource extends Resource
                     ->iconButton(),
                 Tables\Actions\DeleteAction::make()
                     ->iconButton(),
+                Tables\Actions\ViewAction::make()
+                    ->iconButton(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
