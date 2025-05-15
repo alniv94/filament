@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\RentStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{HasMany, BelongsToMany, BelongsTo};
 
 class Rent extends Model
 {
-
     protected $fillable = [
         'customer_id',
         'erf_date',
@@ -18,6 +18,20 @@ class Rent extends Model
         'notes',
     ];
 
+    protected $casts = [
+        'status' => 'string',
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($rent) {
+            if (empty($rent->status)) {
+                $rent->status = RentStatus::OPEN->value;
+            }
+        });
+    }
 
     public function rentItems(): HasMany
     {

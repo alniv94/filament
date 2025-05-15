@@ -7,6 +7,7 @@ use App\Filament\Resources\RentResource\RelationManagers;
 use App\Models\Rent;
 use App\Models\Equipment;
 use App\Models\RentItem;
+use App\Enums\RentStatus;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 
 class RentResource extends Resource
 {
@@ -46,6 +48,14 @@ class RentResource extends Resource
                 ->required(),
             Forms\Components\DatePicker::make('arrival_date')
                 ->required(),
+            Forms\Components\Select::make('status')
+                ->options([
+                    RentStatus::OPEN->value => RentStatus::OPEN->getLabel(),
+                ])
+                ->default(RentStatus::OPEN->value)
+                ->disabled()
+                ->dehydrated()
+                ->required(),
             Forms\Components\Textarea::make('notes')
                 ->required()
                 ->columnSpanFull(),
@@ -67,14 +77,99 @@ class RentResource extends Resource
                     ->searchable()
                     ->date(),
                 Tables\Columns\TextColumn::make('status')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('notes')
+                    ->badge()
+                    ->color(fn($state): string => RentStatus::tryFrom($state)?->getColor() ?? 'gray')
                     ->searchable(),
             ])
             ->filters([
                 //
             ])
             ->actions([
+                Tables\Actions\Action::make('void')
+                    ->label('Void')
+                    ->color('gray')
+                    ->button()
+                    ->visible(
+                        fn(Rent $record): bool =>
+                        $record->status === RentStatus::OPEN->value ||
+                            $record->status === RentStatus::SUBMITTED->value
+                    )
+                    ->action(function (Rent $record) {
+                        $oldStatus = $record->status;
+                        $newStatus = RentStatus::VOID->value;
+
+                        $record->update(['status' => $newStatus]);
+
+                        Notification::make()
+                            ->title('Rent status updated')
+                            ->body("Status changed from {$oldStatus} to {$newStatus}")
+                            ->success()
+                            ->send();
+                    }),
+
+                Tables\Actions\Action::make('submit')
+                    ->label('Submit')
+                    ->color('warning')
+                    ->button()
+                    ->visible(
+                        fn(Rent $record): bool =>
+                        $record->status === RentStatus::OPEN->value
+                    )
+                    ->action(function (Rent $record) {
+                        $oldStatus = $record->status;
+                        $newStatus = RentStatus::SUBMITTED->value;
+
+                        $record->update(['status' => $newStatus]);
+
+                        Notification::make()
+                            ->title('Rent status updated')
+                            ->body("Status changed from {$oldStatus} to {$newStatus}")
+                            ->success()
+                            ->send();
+                    }),
+
+                Tables\Actions\Action::make('post')
+                    ->label('Post')
+                    ->color('success')
+                    ->button()
+                    ->visible(
+                        fn(Rent $record): bool =>
+                        $record->status === RentStatus::SUBMITTED->value
+                    )
+                    ->action(function (Rent $record) {
+                        $oldStatus = $record->status;
+                        $newStatus = RentStatus::POSTED->value;
+
+                        $record->update(['status' => $newStatus]);
+
+                        Notification::make()
+                            ->title('Rent status updated')
+                            ->body("Status changed from {$oldStatus} to {$newStatus}")
+                            ->success()
+                            ->send();
+                    }),
+
+                Tables\Actions\Action::make('cancel')
+                    ->label('Cancel')
+                    ->color('danger')
+                    ->button()
+                    ->visible(
+                        fn(Rent $record): bool =>
+                        $record->status === RentStatus::POSTED->value
+                    )
+                    ->action(function (Rent $record) {
+                        $oldStatus = $record->status;
+                        $newStatus = RentStatus::CANCELLED->value;
+
+                        $record->update(['status' => $newStatus]);
+
+                        Notification::make()
+                            ->title('Rent status updated')
+                            ->body("Status changed from {$oldStatus} to {$newStatus}")
+                            ->success()
+                            ->send();
+                    }),
+
                 Tables\Actions\EditAction::make()
                     ->iconButton(),
                 Tables\Actions\DeleteAction::make()
@@ -116,7 +211,9 @@ class RentResource extends Resource
                             ->label('ERF Number'),
                         Infolists\Components\TextEntry::make('erf_date')
                             ->date(),
-                        Infolists\Components\TextEntry::make('status'),
+                        Infolists\Components\TextEntry::make('status')
+                            ->badge()
+                            ->color(fn($state): string => RentStatus::tryFrom($state)?->getColor() ?? 'gray'),
                     ])->columns(3),
 
                 Infolists\Components\Section::make('Customer Information')

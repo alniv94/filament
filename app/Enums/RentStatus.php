@@ -11,6 +11,7 @@ enum RentStatus: string implements HasLabel, HasColor
     case SUBMITTED = 'Submitted';
     case POSTED = 'Posted';
     case CANCELLED = 'Cancelled';
+    case VOID = 'Void';
 
 
     public function getLabel(): string
@@ -21,10 +22,11 @@ enum RentStatus: string implements HasLabel, HasColor
     public function getColor(): string
     {
         return match ($this) {
-            self::OPEN => 'blue',
-            self::SUBMITTED => 'info',
+            self::OPEN => 'info',
+            self::SUBMITTED => 'warning',
             self::POSTED => 'success',
             self::CANCELLED => 'danger',
+            self::VOID => 'gray',
         };
     }
 }
