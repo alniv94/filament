@@ -6,6 +6,7 @@ use App\Filament\Resources\EquipmentResource;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class ViewEquipment extends ViewRecord
 {
@@ -68,6 +69,17 @@ class ViewEquipment extends ViewRecord
                                     ->height(300)
                                     ->visibility('public')
                                     ->extraImgAttributes(['class' => 'object-contain']),
+                            ]),
+                    ]),
+
+                Infolists\Components\Section::make('Equipment QR Code')
+                    ->schema([
+                        Infolists\Components\ViewEntry::make('qr_code')
+                            ->view('filament.infolists.components.qr-code-entry')
+                            ->viewData([
+                                'qrCode' => QrCode::size(200)
+                                    ->generate($this->record->id),
+                                'record' => $this->record,
                             ]),
                     ]),
 

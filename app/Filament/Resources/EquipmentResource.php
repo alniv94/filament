@@ -156,43 +156,56 @@ class EquipmentResource extends Resource
                     }),
                 Tables\Columns\TextColumn::make('fuel_consumption_number')
                     ->numeric()
+                    ->toggleable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('size_number')
                     ->numeric()
+                    ->toggleable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('capacity_max')
                     ->numeric()
+                    ->toggleable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('capacity_tip')
                     ->numeric()
+                    ->toggleable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('acel_rate_dry')
                     ->numeric()
+                    ->toggleable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('acel_rate_hour')
                     ->numeric()
+                    ->toggleable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('nsjbi_rate_dry')
                     ->numeric()
+                    ->toggleable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('nsjbi_rate_hour')
                     ->numeric()
+                    ->toggleable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('bare_month')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('per_trip')
                     ->numeric()
+                    ->toggleable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('est_repair_cost')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('remarks')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('date_issued')
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('status')
-                    ->badge(),
+                    ->badge()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('brand.name')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
