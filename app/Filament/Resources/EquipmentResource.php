@@ -97,6 +97,12 @@ class EquipmentResource extends Resource
                     ->required(),
                 Forms\Components\Select::make('brand_id')
                     ->relationship('brand', 'name')
+                    ->preload()
+                    ->required()
+                    ->searchable(),
+                Forms\Components\Select::make('customer_id')
+                    ->relationship('customer', 'name')
+                    ->preload()
                     ->required()
                     ->searchable(),
                 Forms\Components\FileUpload::make('equipment_image')

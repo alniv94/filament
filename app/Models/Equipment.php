@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, BelongsToMany};
 use App\Enums\Status;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -107,5 +107,20 @@ class Equipment extends Model
                 return asset('storage/' . $path);
             })
             ->toArray();
+    }
+
+    public function rentItems(): HasMany
+    {
+        return $this->hasMany(RentItem::class);
+    }
+
+    public function rents(): BelongsToMany
+    {
+        return $this->belongsToMany(Rent::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 }

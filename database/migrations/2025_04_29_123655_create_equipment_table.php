@@ -41,7 +41,7 @@ return new class extends Migration
             // Eloquent Connection
             // $table->foreignId('size_id')->constrained()->cascadeOnDelete();
             // $table->foreignId('fuel_consumption_id')->constrained()->cascadeOnDelete();
-            // $table->foreignId('location_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
 
             $table->foreignId('brand_id')->constrained()->cascadeOnDelete();
             // $table->foreignId('classification_id')->constrained()->cascadeOnDelete();
